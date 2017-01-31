@@ -83,6 +83,7 @@ class User(UserMixin, LDAPOrm):
         entry.sn = self.surname
         entry.cn = self.full_name
         entry.givenName = self.firstName
+        entry.userid = self.username
         if self.password:
             entry.userPassword = self._password
         if self.mail:
