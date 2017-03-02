@@ -1,6 +1,6 @@
-from flask import request
+from flask import request, abort, g
 from flask.json import jsonify
-from . import registration_blueprint
+from . import registration_blueprint, token_auth
 from .models import Uni, Registration
 from .helpers import send_registration_success_mail
 from app.user import groups_required
@@ -43,3 +43,8 @@ def api_register():
         confirmed = registration.confirmed,
         data = registration.blob,
     )
+
+@registration_blueprint.route('/api/order/token')
+@token_auth.login_required
+def validate_token():
+    return jsonify(g.uni.name)
