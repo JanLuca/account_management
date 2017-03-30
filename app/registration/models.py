@@ -6,10 +6,12 @@ class Registration(db.Model):
     id = db.Column(db.Integer(), primary_key = True)
     username = db.Column(db.Text(), unique = True)
     blob = db.Column(db.Text())
-    priority = db.Column(db.Integer(), unique = True)
+    priority = db.Column(db.Integer())
     confirmed = db.Column(db.Boolean())
     uni_id = db.Column(db.Integer(), db.ForeignKey('uni.id'))
     uni = db.relationship('Uni', backref=db.backref('Registrations', lazy='dynamic', cascade="all, delete-orphan"))
+
+    priority_constraint = db.UniqueConstraint('uni_id', 'priority', name='uni_priority_unique')
 
     @property
     def user(self):

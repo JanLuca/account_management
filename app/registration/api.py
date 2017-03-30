@@ -44,7 +44,50 @@ def api_register():
         data = registration.blob,
     )
 
-@registration_blueprint.route('/api/order/token')
+@registration_blueprint.route('/api/priorities', methods=['GET', 'POST'])
+@oauth.require_oauth('registration_priorities')
 @token_auth.login_required
-def validate_token():
-    return jsonify(g.uni.name)
+def api_registration_priorities():
+    if request.method == 'POST' \
+        and request.headers.get('Content-Type') == 'application/json':
+        req = request.get_json()
+        if not req:
+            abort(403)
+            return ''
+
+        new_priority = len(req['priority'])
+
+        registrations = Registration.query.filter_by(uni_id = g.uni.id)
+        for registration in registrations:
+            if registration.id in req['confirmed']:
+                registration.confirmed = True
+                # The try-catch block checks if the id of the 
+                # registration is in the req['order'] list.
+                # If found the index of the element in the list will be used
+                # as priority of the registration.
+                # If not found the registration will get the next free
+                # priority as default value.
+                try:
+                    registration.priority = req['order'].index(reg_id)
+                except ValueError:
+                    registration.priority = new_priority
+                    new_priority = new_priority + 1
+            else:
+                registration.confirmed = False
+                registration.priority = None
+            db.session.add(registration)
+
+        db.session.commit()
+        return "OK"
+
+    registrations = Registration.query.filter_by(uni_id = g.uni.id).order_by(Registration.priority)
+    confirmed = [
+       {'reg_id': reg.id, 'name': reg.user.full_name, 'mail': reg.user.mail, 'priority': reg.priority}
+       for reg in registrations if reg.confirmed
+      ]
+    not_confirmed = [     
+       {'reg_id': reg.id, 'name': reg.user.full_name, 'mail': reg.user.mail, 'priority': reg.priority}
+       for reg in registrations if not reg.confirmed
+      ]
+
+    return jsonify(confirmed = confirmed, not_confirmed = not_confirmed)
