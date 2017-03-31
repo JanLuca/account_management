@@ -1,6 +1,6 @@
 from flask import request, abort, g
 from flask.json import jsonify
-from . import registration_blueprint, token_auth
+from . import registration_blueprint, uni_token_required
 from .models import Uni, Registration
 from .helpers import send_registration_success_mail
 from app.user import groups_required
@@ -46,7 +46,7 @@ def api_register():
 
 @registration_blueprint.route('/api/priorities', methods=['GET', 'POST'])
 @oauth.require_oauth('registration_priorities')
-@token_auth.login_required
+@uni_token_required
 def api_registration_priorities():
     if request.method == 'POST' \
         and request.headers.get('Content-Type') == 'application/json':
