@@ -86,6 +86,16 @@ MITTAG3_TYPES = {
   'normal': 'Currywurst'
 }
 
+ANREISE_TYPES = {
+  'bus': 'Fernbus',
+  'bahn': 'Zug',
+  'auto': 'Auto',
+  'flug': 'Flugzeug',
+  'fahrrad': 'Fahrrad',
+  'einhorn': 'Einhorn',
+  'uboot': 'U-Boot'
+}
+
 class Winter17ExkursionenOverwriteForm(FlaskForm):
     spitzname = StringField('Spitzname')
     exkursion_overwrite = SelectField('Exkursionen Festlegung', choices=EXKURSIONEN_TYPES_FORM)
@@ -326,12 +336,14 @@ def registration_wise17_report_spitznamen():
 @groups_sufficient('admin', 'orga')
 def registration_wise17_details_registration(reg_id):
     reg = Registration.query.filter_by(id=reg_id).first()
-    form = Sommer17ExkursionenOverwriteForm()
+    form = Winter17ExkursionenOverwriteForm()
     if form.validate_on_submit():
         data = reg.data
         old_spitzname = data['spitzname']
         if 'exkursion_overwrite' in reg.data:
             old_overwrite = data['exkursion_overwrite']
+        else:
+            old_overwrite = ''
         data['spitzname'] = form.spitzname.data
         data['exkursion_overwrite'] = form.exkursion_overwrite.data
         reg.data = data
@@ -339,7 +351,7 @@ def registration_wise17_details_registration(reg_id):
         db.session.commit()
         if old_spitzname != form.spitzname.data:
             return redirect(url_for('registration.registration_wise17_report_spitznamen'))
-        elif old_overwrite and old_overwrite != form.exkursion_overwrite.data:
+        elif old_overwrite != form.exkursion_overwrite.data:
             return redirect(url_for('registration.registration_wise17_report_exkursionen'))
         else:
             return redirect(url_for('registration.registration_wise17_details_registration', reg_id = reg_id))
@@ -351,9 +363,13 @@ def registration_wise17_details_registration(reg_id):
         form = form,
         EXKURSIONEN_TYPES = EXKURSIONEN_TYPES,
         ESSEN_TYPES = ESSEN_TYPES,
+        MITTAG1_TYPES = MITTAG1_TYPES,
+        MITTAG2_TYPES = MITTAG2_TYPES,
+        MITTAG3_TYPES = MITTAG3_TYPES,
         TSHIRTS_TYPES = TSHIRTS_TYPES,
-        ZELTEN_TYPES = ZELTEN_TYPES,
-        HEISSE_GETRAENKE_TYPES = HEISSE_GETRAENKE_TYPES
+        SCHLAFEN_TYPES = SCHLAFEN_TYPES,
+        HEISSE_GETRAENKE_TYPES = HEISSE_GETRAENKE_TYPES,
+        ANREISE_TYPES = ANREISE_TYPES
     )
 
 @registration_blueprint.route('/admin/registration/report/wise17/stimmkarten/latex')
